@@ -14,6 +14,15 @@ let indexerObjects = {}
   - Use express.js for some sligltly neater URL handling.
   - Add a main search page (just one search box in the middle) using bootstrap
   - Add output compression (comes with express.js)
+  - Allow json output fields to be managed by the request side (in the url).
+    <url>/search/<some query>/fields:name,url,size
+    An url like that should only add the fields name, url and size to the output,
+    the others (sizeHumanReadable and classification) won't be printed.
+  - Allow requesting the avaliable indexers. Could be done via the url:
+    <url>/indexers
+  - Allow the request to not use certain indexers, could be an url like:
+    <url>/search/<some query>/skipIndexers:kickass.js,rarbg.js,...
+  - Describe the API usage on some page. <url>/documentation seems ok.
 */
 
 // Crazy code..
