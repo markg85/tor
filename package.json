@@ -1,0 +1,26 @@
+{
+  "name": "tor",
+  "version": "0.0.1",
+  "description": "Small application that lets you query various torrent sites and outputs it in one generic JSON blob.",
+  "main": "server.js",
+  "dependencies": {
+    "async": "^1.5.2",
+    "curlrequest": "^0.5.6",
+    "fast-xml2js": "^1.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markg85/tor.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/markg85/tor/issues"
+  },
+  "homepage": "https://github.com/markg85/tor#readme"
+}
