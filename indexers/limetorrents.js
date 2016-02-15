@@ -19,10 +19,6 @@ module.exports = {
   returnData: [],
 
   fetch: function(searchString, callback){
-
-    // Construct a current timestamp. Rarbg apparently likes a cookie with the current timestamp, otherwise it will think that i'm a bot (heh, it's right :p)
-    let timestamp = Math.floor(new Date() / 1000)
-
     let options = {
       url: `https://www.limetorrents.cc/searchrss/${encodeURIComponent(searchString)}/?rss=1`,
       useragent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36',

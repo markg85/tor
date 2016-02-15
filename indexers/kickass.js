@@ -5,15 +5,11 @@ let parseString = require('fast-xml2js').parseString
 
 
 module.exports = {
-    
+
   hasDirectMagnetLink: true,
   returnData: [],
-  
-  fetch: function(searchString, callback){
-      
-    // Construct a current timestamp. Rarbg apparently likes a cookie with the current timestamp, otherwise it will think that i'm a bot (heh, it's right :p)
-    let timestamp = Math.floor(new Date() / 1000)
 
+  fetch: function(searchString, callback){
     let options = {
       url: `https://kat.cr/usearch/${encodeURIComponent(searchString)}/?rss=1`,
       useragent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36',
@@ -26,15 +22,15 @@ module.exports = {
     curl.request(options, function (err, data, meta) {
         // This log prints the curl command line. Good for debugging purposes.
         //console.log('%s %s', meta.cmd, meta.args.join(' '));
-        
+
         module.exports.parseHtml(data, callback)
     });
   },
-  
+
   parseHtml: function(html, callback){
-    
+
     let returnData = []
-    
+
     parseString(html, function (err, result) {
         if (result && result.rss)
         {
@@ -44,9 +40,8 @@ module.exports = {
             }
         }
     });
-    
+
     module.exports.returnData = returnData;
     callback()
   },
 };
-

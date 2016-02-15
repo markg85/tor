@@ -8,8 +8,6 @@ module.exports = {
   returnData: [],
 
   fetch: function(searchString, callback){
-
-
     let options = {
       url: `https://torrentapi.org/pubapi_v2.php?get_token=get_token`,
       useragent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36',
