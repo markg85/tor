@@ -42,6 +42,8 @@ module.exports = {
 
     parseString(html, function (err, result) {
 
+        // TODO: Add additional parsing rules here. Limetorrents is a bit nasty and just searches for "related" words if it doesn't fine any matches.
+        // so we should add some logic here that filters out what Limetorrents adds in.. Yay... Or we can drop limetorrents alltogether?
         for (let item of result.rss.channel[0].item)
         {
             let url = item.enclosure[0][Object.keys(item.enclosure[0])[0]].url
