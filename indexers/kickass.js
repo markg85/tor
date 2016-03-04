@@ -23,7 +23,11 @@ module.exports = {
         // This log prints the curl command line. Good for debugging purposes.
         //console.log('%s %s', meta.cmd, meta.args.join(' '));
 
-        module.exports.parseHtml(data, callback)
+        if (data) {
+          module.exports.parseHtml(data, callback)
+        } else {
+          callback()
+        }
     });
   },
 
