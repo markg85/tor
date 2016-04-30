@@ -4,7 +4,8 @@ let fs = require("fs"),
     path = require("path"),
     async = require("async"),
     http = require('http'),
-    classifier = require('./classifier.js')
+    classifier = require('./classifier.js'),
+    latest = require('./latest.js')
 
 let indexersDir = path.dirname(require.main.filename) + "/indexers"
 let indexerObjects = {}
@@ -23,10 +24,6 @@ let indexerObjects = {}
   - Allow the request to not use certain indexers, could be an url like:
     <url>/search/<some query>/skipIndexers:kickass.js,rarbg.js,...
   - Describe the API usage on some page. <url>/documentation seems ok.
-  - Allow searching for the latest episode of a series. For example:
-    <url>/search/latest:Arrow would search for the latest episode of Arrow
-    without the need to fill in a S0XEXX suffix, that would be collected from
-    some other web service provider. I don't know which one yet though.
 */
 
 // Crazy code..
@@ -51,12 +48,7 @@ fs.readdir(indexersDir, function (err, files) {
 
     // 2 is the fist argument after "node server.js"
     if (process.argv[2]) {
-        queryIndexers(process.argv[2], function (outputData){
-          console.log(outputData)
-
-          // Exit gravefully. No need to keep running and start the server.
-          process.exit(0);
-        });
+        handleRequest(0, 0, process.argv[2])
     }
 });
 
@@ -102,24 +94,96 @@ function queryIndexers(keyword, callback) {
 }
 
 //We need a function which handles requests and send response
-function handleRequest(request, response){
-    let searchPos = request.url.search(/\/search\//i)
-
-    if (searchPos > -1) {
-      let keyword = decodeURIComponent(request.url.substring(8))
-      console.log(`We tried to search for: ${keyword}`)
-
-      queryIndexers(keyword, function (outputData){
-        // We send our content as application/json
-        response.writeHead(200, {'Content-Type': 'application/json'});
-
-        // null, 4 -- this is to have nice json formatting.
-        response.end(JSON.stringify(outputData, null, 4))
-      });
-    } else {
-      response.end();
+function handleRequest(request, response, commandlineKeyword){
+    if (request.url === '/favicon.ico') {
+        response.writeHead(200, {'Content-Type': 'image/x-icon'} );
+        response.end();
+        return;
     }
 
+    let keyword = commandlineKeyword;
+
+    if (!commandlineKeyword) {
+        let searchPos = request.url.search(/\/search\//i)
+
+        if (searchPos > -1) {
+            keyword = decodeURIComponent(request.url.substring(8)).trim()
+        }
+    }
+
+    let latestKeyword = "latest:";
+    let searchForLatest = false;
+
+    if (keyword && keyword.toLowerCase().indexOf(latestKeyword) === 0) {
+        keyword = keyword.substring(latestKeyword.length).trim();
+        searchForLatest = true;
+        console.log("We want to search for the latest episode of: " + keyword)
+    } else {
+        console.log(`We tried to search for: ${keyword}`)
+    }
+
+    if (searchForLatest) {
+        async.series([
+            function(callback) {
+                // do some stuff ...
+                latest.fetch(keyword, callback)
+            },
+            function(callback) {
+                if (latest.returnData.episodeSuffix) {
+                    keyword += " " + latest.returnData.episodeSuffix
+                    console.log("Keyword suffix added: " + latest.returnData.episodeSuffix + ". The full keyword is now: " + keyword)
+
+                    queryIndexers(keyword, function (outputData){
+                        if (commandlineKeyword) {
+                            console.log(outputData)
+
+                            // Exit gravefully. No need to keep running and start the server.
+                            process.exit(0);
+                        }
+
+                        // We send our content as application/json
+                        response.writeHead(200, {'Content-Type': 'application/json'});
+
+                        // null, 4 -- this is to have nice json formatting.
+                        response.end(JSON.stringify(outputData, null, 4))
+
+                        // Call the callback so that this async thing ends.
+                        callback();
+                    });
+                } else {
+                    if (commandlineKeyword) {
+                        console.log(latest.returnData)
+                    } else {
+                        // We send our content as application/json
+                        response.writeHead(200, {'Content-Type': 'application/json'});
+
+                        // null, 4 -- this is to have nice json formatting.
+                        response.end(JSON.stringify(latest.returnData, null, 4))
+                    }
+
+                    // Call the callback so that this async thing ends.
+                    callback();
+                }
+            }
+        ],
+        function(err, results){
+        });
+    } else {
+        queryIndexers(keyword, function (outputData){
+            if (commandlineKeyword) {
+                console.log(outputData)
+
+                // Exit gravefully. No need to keep running and start the server.
+                process.exit(0);
+            }
+
+            // We send our content as application/json
+            response.writeHead(200, {'Content-Type': 'application/json'});
+
+            // null, 4 -- this is to have nice json formatting.
+            response.end(JSON.stringify(outputData, null, 4))
+        });
+    }
 }
 
 //Create a server
