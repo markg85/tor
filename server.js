@@ -53,9 +53,11 @@ fs.readdir(indexersDir, function (err, files) {
     if (process.argv[2]) {
         queryIndexers(process.argv[2], function (outputData){
           console.log(outputData)
+
+          // Exit gravefully. No need to keep running and start the server.
+          process.exit(0);
         });
     }
-
 });
 
 function queryIndexers(keyword, callback) {
