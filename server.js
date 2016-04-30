@@ -62,18 +62,15 @@ function queryIndexers(keyword, callback) {
 
     }, function (err) {
 
-        let outputData = {}
+        // Define the output arrays. This is also the order in which they will appear on the screen.
+        let outputData = { "2160p" : [], "1080p": [], "720p" : [], "sd" : [] }
+
         for (let obj in indexerObjects) {
           for (let item of indexerObjects[obj].returnData) {
             // Get the classification of this item.
             let classification = classifier.classify(item.name)
             item.sizeHumanReadable = fileSizeIEC(item.size)
             item.classification = classification
-
-            // If the current resulotion isn't in the output data yet, make a new array for it.
-            if (!outputData[classification.resolution]) {
-              outputData[classification.resolution] = []
-            }
 
             // Add it to the output data.
             outputData[classification.resolution].push(item)
@@ -82,6 +79,13 @@ function queryIndexers(keyword, callback) {
 
         // Sort grouped objects by size in descending order
         for (let obj in outputData) {
+          // Delete empty objects.
+          if (outputData[obj].length === 0) {
+            delete outputData[obj];
+            continue;
+          }
+
+          // Now we start sorting for those that did not get deleted
           outputData[obj].sort(function(a, b) {
             return parseFloat(b.size) - parseFloat(a.size);
           });
