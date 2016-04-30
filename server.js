@@ -23,6 +23,10 @@ let indexerObjects = {}
   - Allow the request to not use certain indexers, could be an url like:
     <url>/search/<some query>/skipIndexers:kickass.js,rarbg.js,...
   - Describe the API usage on some page. <url>/documentation seems ok.
+  - Allow searching for the latest episode of a series. For example:
+    <url>/search/latest:Arrow would search for the latest episode of Arrow
+    without the need to fill in a S0XEXX suffix, that would be collected from
+    some other web service provider. I don't know which one yet though.
 */
 
 // Crazy code..
