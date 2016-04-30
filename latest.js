@@ -33,13 +33,15 @@ module.exports = {
     };
 
     curl.request(options, function (err, data, meta) {
-        let obj = JSON.parse(data)
+        module.exports.returnData = {error: "No valid episode information found in tvmaze. We used url: " + options.url}
 
-        if (obj && obj._embedded && obj._embedded.previousepisode) {
-            let previousEpisodeData = obj._embedded.previousepisode;
-            module.exports.returnData = {episodeSuffix: `S${module.exports.zeroPad(previousEpisodeData.season, 2)}E${module.exports.zeroPad(previousEpisodeData.number, 2)}`, episodeName: previousEpisodeData.name}
-        } else {
-            module.exports.returnData = {error: "No valid episode information found in tvmaze. We used url: " + options.url}
+        if (data) {
+            let obj = JSON.parse(data)
+
+            if (obj && obj._embedded && obj._embedded.previousepisode) {
+                let previousEpisodeData = obj._embedded.previousepisode;
+                module.exports.returnData = {episodeSuffix: `S${module.exports.zeroPad(previousEpisodeData.season, 2)}E${module.exports.zeroPad(previousEpisodeData.number, 2)}`, episodeName: previousEpisodeData.name}
+            }
         }
 
         callback()
