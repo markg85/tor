@@ -104,6 +104,7 @@ function handleResponse(response, data) {
         response.end(JSON.stringify(data, null, 4))
     } else {
         console.log(data)
+        process.exit(0);
     }
 }
 
@@ -162,19 +163,10 @@ function handleRequest(request, response, commandlineKeyword){
             }
         ],
         function(err, results){
-            if (commandlineKeyword) {
-                // Exit gravefully. No need to keep running and start the server.
-                process.exit(0);
-            }
         });
     } else {
         queryIndexers(keyword, function (outputData){
             handleResponse(response, outputData);
-
-            if (commandlineKeyword) {
-                // Exit gravefully. No need to keep running and start the server.
-                process.exit(0);
-            }
         });
     }
 }
