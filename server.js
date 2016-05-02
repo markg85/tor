@@ -93,6 +93,20 @@ function queryIndexers(keyword, callback) {
     })
 }
 
+function handleResponse(response, data) {
+    // If we have a response object (we probably have an http request) so return to that.
+    // If we don't the nwe're on the console.
+    if (response) {
+        // We send our content as application/json
+        response.writeHead(200, {'Content-Type': 'application/json'});
+
+        // null, 4 -- this is to have nice json formatting.
+        response.end(JSON.stringify(data, null, 4))
+    } else {
+        console.log(data)
+    }
+}
+
 //We need a function which handles requests and send response
 function handleRequest(request, response, commandlineKeyword){
     if (request.url === '/favicon.ico') {
@@ -134,32 +148,13 @@ function handleRequest(request, response, commandlineKeyword){
                     console.log("Keyword suffix added: " + latest.returnData.episodeSuffix + ". The full keyword is now: " + keyword)
 
                     queryIndexers(keyword, function (outputData){
-                        if (commandlineKeyword) {
-                            console.log(outputData)
-
-                            // Exit gravefully. No need to keep running and start the server.
-                            process.exit(0);
-                        }
-
-                        // We send our content as application/json
-                        response.writeHead(200, {'Content-Type': 'application/json'});
-
-                        // null, 4 -- this is to have nice json formatting.
-                        response.end(JSON.stringify(outputData, null, 4))
+                        handleResponse(response, outputData);
 
                         // Call the callback so that this async thing ends.
                         callback();
                     });
                 } else {
-                    if (commandlineKeyword) {
-                        console.log(latest.returnData)
-                    } else {
-                        // We send our content as application/json
-                        response.writeHead(200, {'Content-Type': 'application/json'});
-
-                        // null, 4 -- this is to have nice json formatting.
-                        response.end(JSON.stringify(latest.returnData, null, 4))
-                    }
+                    handleResponse(response, latest.returnData);
 
                     // Call the callback so that this async thing ends.
                     callback();
@@ -167,21 +162,19 @@ function handleRequest(request, response, commandlineKeyword){
             }
         ],
         function(err, results){
-        });
-    } else {
-        queryIndexers(keyword, function (outputData){
             if (commandlineKeyword) {
-                console.log(outputData)
-
                 // Exit gravefully. No need to keep running and start the server.
                 process.exit(0);
             }
+        });
+    } else {
+        queryIndexers(keyword, function (outputData){
+            handleResponse(response, outputData);
 
-            // We send our content as application/json
-            response.writeHead(200, {'Content-Type': 'application/json'});
-
-            // null, 4 -- this is to have nice json formatting.
-            response.end(JSON.stringify(outputData, null, 4))
+            if (commandlineKeyword) {
+                // Exit gravefully. No need to keep running and start the server.
+                process.exit(0);
+            }
         });
     }
 }
