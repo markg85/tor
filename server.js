@@ -137,6 +137,12 @@ function handleRequest(request, response, commandlineKeyword){
         console.log(`We tried to search for: ${keyword}`)
     }
 
+    // Handle empty search keyword. Return if empty.
+    if (keyword.length === 0) {
+        handleResponse(response, {error: "Empty search keyword. Please type in a search keyword!"});
+        return;
+    }
+
     if (searchForLatest) {
         async.series([
             function(callback) {
