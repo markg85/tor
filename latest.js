@@ -4,12 +4,18 @@
  * "latest" uses the tvmaze api (http://www.tvmaze.com/api) to get the latest information about airing dates for
  * any particular series. It ONLY works on series!
  *
- * The API works by making two calls.
- * 1. to find the series ID on tvmaze
- * 2. to get the series details with the last aired episode data
+ * The API works by doing a "single search" to their api. That allows us to:
+ * - get the shows information
+ * - get the previous episode air date
+ * - get the next episode air date
+ * All with just one API call on a rather fast service!
  *
- * If both requests work and there is data to return then it will be used!
- * If it failes in any step some json error data will be returned.
+ * TODO:
+ * 1. Change the embed query part to: embed[]=previousepisode&embed[]=nextepisode, that fetches the last aired episode and the next airdate.
+ * 2. Once we have that data, save it locally as a cache (to minimize api call usage). Store it for at most 1 week or till the next air data,
+ *    which ever one is the shortest!
+ * 3. Periodically re-evaluate those cached results to update the cache. This should reduce API usage to the bare minimum where a call is only
+ *    done if there was no cache or if the cache expired.
  */
 
 
