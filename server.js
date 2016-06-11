@@ -60,6 +60,12 @@ function queryIndexers(keyword, callback) {
 
     }, function (err) {
 
+        // TODO: Re-evaluate this code. It needs to do:
+        // - Get all links from indexers
+        // - Filter out duplicate hashes (can easily occur). Idea: store the hash in a seperate array, filter that to be unique then re-use that to construct a new output array with no duplicates.
+        // - *perhaps* also re-validate that - say - 75% of the keyword text must occur in the resulting "name" value. If not, then an indexer added cruft.. (limetorrents..).
+        //   or the indexer should be adjusted to not return crust, that might actually be better.
+
         // Define the output arrays. This is also the order in which they will appear on the screen.
         let outputData = { "2160p" : [], "1080p": [], "720p" : [], "sd" : [] }
 
