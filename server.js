@@ -129,18 +129,18 @@ function handleRequest(request, response, commandlineKeyword){
     let latestKeyword = "latest:";
     let searchForLatest = false;
 
-    if (keyword && keyword.toLowerCase().indexOf(latestKeyword) === 0) {
+    // Handle empty search keyword. Return if empty.
+    if (!keyword || keyword.length === 0) {
+        handleResponse(response, {error: "Empty search keyword. Please type in a search keyword!"});
+        return;
+    }
+
+    if (keyword.toLowerCase().indexOf(latestKeyword) === 0) {
         keyword = keyword.substring(latestKeyword.length).trim();
         searchForLatest = true;
         console.log("We want to search for the latest episode of: " + keyword)
     } else {
         console.log(`We tried to search for: ${keyword}`)
-    }
-
-    // Handle empty search keyword. Return if empty.
-    if (keyword.length === 0) {
-        handleResponse(response, {error: "Empty search keyword. Please type in a search keyword!"});
-        return;
     }
 
     if (searchForLatest) {
