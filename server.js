@@ -122,6 +122,12 @@ function handleRequest(request, response, commandlineKeyword){
         return;
     }
 
+    // Allow javascript sites to request this API.
+    if (response)
+    {
+      response.setHeader("Access-Control-Allow-Origin", "*");
+    }
+
     let keyword = commandlineKeyword;
 
     if (!commandlineKeyword) {
@@ -161,6 +167,8 @@ function handleRequest(request, response, commandlineKeyword){
                     console.log("Keyword suffix added: " + latest.returnData.episodeSuffix + ". The full keyword is now: " + keyword)
 
                     queryIndexers(keyword, function (outputData){
+                        let meta = {image: latest.returnData.rawData.image, summary: latest.returnData.rawData.summary, keyword: keyword}
+                        outputData['meta'] = meta;
                         handleResponse(response, outputData);
 
                         // Call the callback so that this async thing ends.

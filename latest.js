@@ -46,7 +46,7 @@ module.exports = {
 
             if (obj && obj._embedded && obj._embedded.previousepisode) {
                 let previousEpisodeData = obj._embedded.previousepisode;
-                module.exports.returnData = {episodeSuffix: `S${module.exports.zeroPad(previousEpisodeData.season, 2)}E${module.exports.zeroPad(previousEpisodeData.number, 2)}`, episodeName: previousEpisodeData.name}
+                module.exports.returnData = {episodeSuffix: `S${module.exports.zeroPad(previousEpisodeData.season, 2)}E${module.exports.zeroPad(previousEpisodeData.number, 2)}`, episodeName: previousEpisodeData.name, rawData: obj}
             }
         }
 
