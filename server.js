@@ -2,18 +2,16 @@
 
 let fs = require("fs"),
     path = require("path"),
-    async = require("async"),
     http = require('http'),
     classifier = require('./classifier.js'),
     latest = require('./latest.js')
 
 let indexersDir = path.dirname(require.main.filename) + "/indexers"
-let indexerObjects = {}
+let indexerObjects = []
 
 /*
   TODO!
   - Use express.js for some sligltly neater URL handling.
-  - Add a main search page (just one search box in the middle) using bootstrap
   - Add output compression (comes with express.js)
   - Allow json output fields to be managed by the request side (in the url).
     <url>/search/<some query>/fields:name,url,size
@@ -34,166 +32,133 @@ function fileSizeIEC(a,b,c,d,e){
 }
 
 fs.readdir(indexersDir, function (err, files) {
-    if (err) {
-        throw err;
-    }
+  if (err) {
+    throw err;
+  }
 
-    console.log("Loading indexers:")
+  console.log("Loading indexers:")
 
-    for(let file of files) {
-        let indexerFile = indexersDir + "/" + file
-        console.log(" - " + file)
-        indexerObjects[file] = require(indexerFile)
-    }
+  for(let file of files) {
+    let indexerFile = indexersDir + "/" + file
+    console.log(" - " + file)
+    indexerObjects.push(require(indexerFile))
+  }
 
-    // 2 is the fist argument after "node server.js"
-    if (process.argv[2]) {
-        handleRequest(0, 0, process.argv[2])
-    }
+  // 2 is the fist argument after "node server.js"
+  if (process.argv[2]) {
+    handleRequest(0, 0, process.argv[2])
+  }
 });
 
-function queryIndexers(keyword, callback) {
+// From: http://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
+Promise.allSettled = function (promises) {
+  return Promise.all(promises.map(p => Promise.resolve(p).then(v => ({
+    state: 'fulfilled',
+    value: v,
+  }), r => ({
+    state: 'rejected',
+    reason: r,
+  }))));
+};
 
-    async.forEachOf(indexerObjects, function (value, key, callback) {
-//        console.log("------------- " + key)
-        value.fetch(keyword, callback)
+function handleRequest(request, response, commandlineKeyword = null) {
+  let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
 
-    }, function (err) {
+  let res = keyword.search(/search:/i) ;
+  if (res > -1) {
+    keyword = decodeURIComponent(keyword.substring(7)).trim()
+  }
 
-        // TODO: Re-evaluate this code. It needs to do:
-        // - Get all links from indexers
-        // - Filter out duplicate hashes (can easily occur). Idea: store the hash in a seperate array, filter that to be unique then re-use that to construct a new output array with no duplicates.
-        // - *perhaps* also re-validate that - say - 75% of the keyword text must occur in the resulting "name" value. If not, then an indexer added cruft.. (limetorrents..).
-        //   or the indexer should be adjusted to not return crust, that might actually be better.
+  // Tell the indexers which thing to look for.
+  let indexerPromises = []
+  for (let indexer of indexerObjects) {
+    indexer.searchString = keyword
+    indexerPromises.push(indexer.execute())
+  }
 
-        // Define the output arrays. This is also the order in which they will appear on the screen.
-        let outputData = { "2160p" : [], "1080p": [], "720p" : [], "sd" : [] }
-
-        for (let obj in indexerObjects) {
-          for (let item of indexerObjects[obj].returnData) {
-            // Get the classification of this item.
-            let classification = classifier.classify(item.name)
-            item.sizeHumanReadable = fileSizeIEC(item.size)
-            item.classification = classification
-
-            // Add it to the output data.
-            outputData[classification.resolution].push(item)
-          }
-        }
-
-        // Sort grouped objects by size in descending order
-        for (let obj in outputData) {
-          // Delete empty objects.
-          if (outputData[obj].length === 0) {
-            delete outputData[obj];
-            continue;
-          }
-
-          // Now we start sorting for those that did not get deleted
-          outputData[obj].sort(function(a, b) {
-            return parseFloat(b.size) - parseFloat(a.size);
-          });
-        }
-
-        return callback(outputData);
-    })
+  Promise.allSettled(indexerPromises)
+  .then((data) => {
+    handleResponse(response, prepareOutputData(data));
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 }
 
 function handleResponse(response, data) {
-    // If we have a response object (we probably have an http request) so return to that.
-    // If we don't the nwe're on the console.
-    if (response) {
-        // We send our content as application/json
-        response.writeHead(200, {'Content-Type': 'application/json'});
+  // If we have a response object (we probably have an http request) so return to that.
+  // If we don't then we're on the console.
+  if (response) {
+    // We send our content as application/json
+    response.writeHead(200, {'Content-Type': 'application/json'});
 
-        // null, 4 -- this is to have nice json formatting.
-        response.end(JSON.stringify(data, null, 4))
-    } else {
-        console.log(data)
-        process.exit(0);
-    }
+    // null, 4 -- this is to have nice json formatting.
+    response.end(JSON.stringify(data, null, 4))
+  } else {
+    console.log(data)
+    process.exit(0);
+  }
 }
 
-//We need a function which handles requests and send response
-function handleRequest(request, response, commandlineKeyword){
-    if (request.url === '/favicon.ico') {
-        response.writeHead(200, {'Content-Type': 'image/x-icon'} );
-        response.end();
-        return;
+function prepareOutputData(data) {
+  // First filter the objects to only get the data of those that have values.
+  let filteredData = []
+  for (let objData of data) {
+    if (objData.state = "filfilled") {
+      if (objData.value.length > 0) {
+        filteredData.push(...objData.value)
+      }
     }
+  }
 
+  // Sort the filteredData by size. This also makes it sorted in the outputData list.
+  filteredData.sort(function(a, b) {
+    return parseFloat(b.size) - parseFloat(a.size);
+  });
+
+  // Define the output arrays. This is also the order in which they will appear on the screen.
+  let outputData = { "2160p" : [], "1080p": [], "720p" : [], "sd" : [] }
+
+  for (let item of filteredData) {
+    // Get the classification of this item.
+    let classification = classifier.classify(item.name)
+    item.sizeHumanReadable = fileSizeIEC(item.size)
+    item.classification = classification
+
+    // Add it to the output data.
+    outputData[classification.resolution].push(item)
+  }
+
+  // Lastly, remove empty elements
+  for (let item in outputData) {
+    if (outputData[item].length === 0) {
+      delete outputData[item];
+    }
+  }
+
+  return outputData;
+}
+
+//Create a server
+let port = 3020
+let server = http.createServer(function(request, response) {
+  // Handle favicon.ico
+  if (request.url === '/favicon.ico') {
+    response.writeHead(200, {'Content-Type': 'image/x-icon'} );
+    response.end();
+  } else {
     // Allow javascript sites to request this API.
     if (response)
     {
       response.setHeader("Access-Control-Allow-Origin", "*");
     }
+    
+    // Handle the request.
+    handleRequest(request, response);
+  }
 
-    let keyword = commandlineKeyword;
 
-    if (!commandlineKeyword) {
-        let searchPos = request.url.search(/\/search\//i)
-
-        if (searchPos > -1) {
-            keyword = decodeURIComponent(request.url.substring(8)).trim()
-        }
-    }
-
-    let latestKeyword = "latest:";
-    let searchForLatest = false;
-
-    // Handle empty search keyword. Return if empty.
-    if (!keyword || keyword.length === 0) {
-        handleResponse(response, {error: "Empty search keyword. Please type in a search keyword!"});
-        return;
-    }
-
-    if (keyword.toLowerCase().indexOf(latestKeyword) === 0) {
-        keyword = keyword.substring(latestKeyword.length).trim();
-        searchForLatest = true;
-        console.log("We want to search for the latest episode of: " + keyword)
-    } else {
-        console.log(`We tried to search for: ${keyword}`)
-    }
-
-    if (searchForLatest) {
-        async.series([
-            function(callback) {
-                // do some stuff ...
-                latest.fetch(keyword, callback)
-            },
-            function(callback) {
-                if (latest.returnData.episodeSuffix) {
-                    keyword += " " + latest.returnData.episodeSuffix
-                    console.log("Keyword suffix added: " + latest.returnData.episodeSuffix + ". The full keyword is now: " + keyword)
-
-                    queryIndexers(keyword, function (outputData){
-                        let meta = {image: latest.returnData.rawData.image, summary: latest.returnData.rawData.summary, keyword: keyword}
-                        outputData['meta'] = meta;
-                        handleResponse(response, outputData);
-
-                        // Call the callback so that this async thing ends.
-                        callback();
-                    });
-                } else {
-                    handleResponse(response, latest.returnData);
-
-                    // Call the callback so that this async thing ends.
-                    callback();
-                }
-            }
-        ],
-        function(err, results){
-        });
-    } else {
-        queryIndexers(keyword, function (outputData){
-            handleResponse(response, outputData);
-        });
-    }
-}
-
-//Create a server
-let port = 3020
-let server = http.createServer(handleRequest);
+});
 
 //Lets start our server
 server.listen(port, function(){
