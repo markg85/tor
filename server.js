@@ -61,6 +61,8 @@ Promise.allSettled = function (promises) {
   }))));
 };
 
+let meta = null;
+
 function handleRequest(request, response, commandlineKeyword = null) {
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
 
@@ -85,6 +87,8 @@ function handleRequest(request, response, commandlineKeyword = null) {
         keyword += " " + data.episodeSuffix
         console.log("Keyword suffix added: " + data.episodeSuffix + ". The full keyword is now: " + keyword)
       }
+      
+      meta = {image: data.rawData.image, summary: data.rawData.summary, keyword: keyword}
 
       fetchDataAndSendRequest(response, keyword);
     })
@@ -107,7 +111,13 @@ function fetchDataAndSendRequest(response, keyword) {
 
   Promise.allSettled(indexerPromises)
   .then((data) => {
-    handleResponse(response, prepareOutputData(data));
+    let outputData = prepareOutputData(data);
+
+    if (meta != null) {
+      outputData['meta'] = meta;
+    }
+
+    handleResponse(response, outputData);
   })
   .catch((err) => {
     console.log(err);
