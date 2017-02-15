@@ -1,12 +1,11 @@
 {
   "name": "tor",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Small application that lets you query various torrent sites and outputs it in one generic JSON blob.",
   "main": "server.js",
   "dependencies": {
-    "async": "^1.5.2",
-    "curlrequest": "^0.5.6",
-    "fast-xml2js": "^1.0.6"
+    "curlrequest": "^1.0.1",
+    "fast-xml2js": "*"
   },
   "devDependencies": {},
   "scripts": {
