@@ -64,9 +64,9 @@ Promise.allSettled = function (promises) {
 function handleRequest(request, response, commandlineKeyword = null) {
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
 
-  let res = keyword.search(/search:/i) ;
+  let res = keyword.search(/\/search\//i) ;
   if (res > -1) {
-    keyword = decodeURIComponent(keyword.substring(7)).trim()
+    keyword = decodeURIComponent(keyword.substring(8)).trim()
   }
 
   // Handle empty search keyword. Return if empty.
