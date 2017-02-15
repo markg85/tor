@@ -17,15 +17,13 @@ module.exports = {
         // This log prints the curl command line. Good for debugging purposes.
         //console.log('%s %s', meta.cmd, meta.args.join(' '));
         let searchString = module.exports.searchString
-
         data = JSON.parse(data)
 
         if (data && data.token) {
           options.url = `https://torrentapi.org/pubapi_v2.php?mode=search&search_string=${encodeURIComponent(searchString)}&token=${data.token}&format=json_extended&ranked=0`
-
           curl.request(options, function (err, data, meta) {
-            console.log(err)
-            console.log(data)
+//            console.log(err)
+//            console.log(data)
 
             if (data) {
               resolve(parseHtml(data))
