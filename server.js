@@ -69,6 +69,35 @@ function handleRequest(request, response, commandlineKeyword = null) {
     keyword = decodeURIComponent(keyword.substring(7)).trim()
   }
 
+  // Handle empty search keyword. Return if empty.
+  if (!keyword || keyword.length === 0) {
+    handleResponse(response, {error: "Empty search keyword. Please type in a search keyword!"});
+    return;
+  }
+
+  let latestKeyword = "latest:"
+  if (keyword.toLowerCase().indexOf(latestKeyword) === 0) {
+    keyword = keyword.substring(latestKeyword.length).trim();
+    latest.searchString = keyword;
+
+    latest.execute().then((data) => {
+      if (data.episodeSuffix) {
+        keyword += " " + data.episodeSuffix
+        console.log("Keyword suffix added: " + data.episodeSuffix + ". The full keyword is now: " + keyword)
+      }
+
+      fetchDataAndSendRequest(response, keyword);
+    })
+    .catch((err) => {
+      console.log(err)
+    });
+  } else {
+    console.log(`We tried to search for: ${keyword}`)
+    fetchDataAndSendRequest(response, keyword);
+  }
+}
+
+function fetchDataAndSendRequest(response, keyword) {
   // Tell the indexers which thing to look for.
   let indexerPromises = []
   for (let indexer of indexerObjects) {
@@ -84,6 +113,7 @@ function handleRequest(request, response, commandlineKeyword = null) {
     console.log(err);
   });
 }
+
 
 function handleResponse(response, data) {
   // If we have a response object (we probably have an http request) so return to that.
@@ -156,8 +186,6 @@ let server = http.createServer(function(request, response) {
     // Handle the request.
     handleRequest(request, response);
   }
-
-
 });
 
 //Lets start our server
