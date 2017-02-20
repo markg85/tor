@@ -66,13 +66,13 @@ let meta = null;
 function handleRequest(request, response, commandlineKeyword = null) {
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
 
-  let res = keyword.search(/\/search\//i) ;
+  let res = keyword.search(/\/search\/?/i) ;
   if (res > -1) {
     keyword = decodeURIComponent(keyword.substring(8)).trim()
   }
 
   // Handle empty search keyword. Return if empty.
-  if (!keyword || keyword.length === 0) {
+  if (!keyword || keyword.length < 2) {
     handleResponse(response, {error: "Empty search keyword. Please type in a search keyword!"});
     return;
   }
@@ -144,7 +144,7 @@ function prepareOutputData(data) {
   // First filter the objects to only get the data of those that have values.
   let filteredData = []
   for (let objData of data) {
-    if (objData.state = "filfilled") {
+    if (objData.state = "filfilled" && objData.value != null) {
       if (objData.value.length > 0) {
         filteredData.push(...objData.value)
       }
