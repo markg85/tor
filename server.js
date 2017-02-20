@@ -88,7 +88,7 @@ function handleRequest(request, response, commandlineKeyword = null) {
         console.log("Keyword suffix added: " + data.episodeSuffix + ". The full keyword is now: " + keyword)
       }
 
-      meta = {image: data.rawData.image, summary: data.rawData.summary, keyword: keyword, name: data.rawData.name}
+      meta = {image: data.rawData.image, summary: data.rawData.summary, keyword: keyword, name: data.rawData.name, episode: data.episodeSuffix}
 
       fetchDataAndSendRequest(response, keyword);
     })
