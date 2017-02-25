@@ -65,11 +65,10 @@ let meta = null;
 
 function handleRequest(request, response, commandlineKeyword = null) {
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
+  let results = keyword.match(/(\/search\/?)?(latest: ?)?(.*)/i);
+  keyword = decodeURIComponent(results[3].trim());
 
-  let res = keyword.search(/\/search\/?/i) ;
-  if (res > -1) {
-    keyword = decodeURIComponent(keyword.substring(8)).trim()
-  }
+  console.log(results)
 
   // Handle empty search keyword. Return if empty.
   if (!keyword || keyword.length < 2) {
@@ -77,10 +76,8 @@ function handleRequest(request, response, commandlineKeyword = null) {
     return;
   }
 
-  let latestKeyword = "latest:"
-  if (keyword.toLowerCase().indexOf(latestKeyword) === 0) {
-    keyword = keyword.substring(latestKeyword.length).trim();
-    latest.searchString = keyword;
+  if (results[2]) {
+    latest.searchString = results[3];
 
     latest.execute().then((data) => {
       if (data.episodeSuffix) {
