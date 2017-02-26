@@ -148,7 +148,7 @@ module.exports = class QueryHandler {
           }
         }
         
-        resolve({searchString: values[0], meta: Object.assign(genericMeta, mata)});
+        resolve({searchString: values[0], meta: Object.assign(genericMeta, meta)});
       }, reason => {
         reason['meta'] = genericMeta;
         reject(reason);
