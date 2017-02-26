@@ -1,6 +1,6 @@
 {
   "name": "tor",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Small application that lets you query various torrent sites and outputs it in one generic JSON blob.",
   "main": "server.js",
   "dependencies": {

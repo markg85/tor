@@ -4,7 +4,8 @@ let fs = require("fs"),
     path = require("path"),
     http = require('http'),
     classifier = require('./classifier.js'),
-    latest = require('./latest.js')
+    latest = require('./latest.js'),
+    QueryHandler = require('./queryHandler')
 
 let indexersDir = path.dirname(require.main.filename) + "/indexers"
 let indexerObjects = []
@@ -65,10 +66,8 @@ let meta = null;
 
 function handleRequest(request, response, commandlineKeyword = null) {
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
-  let results = keyword.match(/(\/search\/?)?(latest: ?)?(.*)/i);
-  keyword = decodeURIComponent(results[3].trim());
-
-  console.log(results)
+  let results = keyword.match(/(\/search\/?)?((latest: ?)?(.*))/i);
+  keyword = decodeURIComponent(results[2].trim());
 
   // Handle empty search keyword. Return if empty.
   if (!keyword || keyword.length < 2) {
@@ -76,26 +75,15 @@ function handleRequest(request, response, commandlineKeyword = null) {
     return;
   }
 
-  if (results[2]) {
-    latest.searchString = results[3];
-
-    latest.execute().then((data) => {
-      if (data.episodeSuffix) {
-        keyword += " " + data.episodeSuffix
-        console.log("Keyword suffix added: " + data.episodeSuffix + ". The full keyword is now: " + keyword)
-      }
-
-      meta = {image: data.rawData.image, summary: data.rawData.summary, keyword: keyword, name: data.rawData.name, episode: data.episodeSuffix}
-
-      fetchDataAndSendRequest(response, keyword);
-    })
-    .catch((err) => {
-      console.log(err)
-    });
-  } else {
+  let handler = new QueryHandler();
+  handler.parse(keyword).then(values => {
+    meta = values.meta;
+    fetchDataAndSendRequest(response, values.searchString);
+  }).catch(reason => {
     console.log(`We tried to search for: ${keyword}`)
-    fetchDataAndSendRequest(response, keyword);
-  }
+    // Search for whatever was given (index 4 of the matches!)
+    fetchDataAndSendRequest(response, decodeURIComponent(results[4].trim()));
+  });
 }
 
 function fetchDataAndSendRequest(response, keyword) {
@@ -120,7 +108,6 @@ function fetchDataAndSendRequest(response, keyword) {
     console.log(err);
   });
 }
-
 
 function handleResponse(response, data) {
   // If we have a response object (we probably have an http request) so return to that.
