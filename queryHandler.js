@@ -15,6 +15,7 @@ module.exports = class QueryHandler {
   
   handleImdb(id) {
     this.apiResult = null;
+    this.searchMode = "IMDB"
     // With IMDb, we only need the OMDb api, that seems to be handling series just fine.
     // Even though it claims to be for movies...
     let omdb = `http://www.omdbapi.com/?i=tt${id}&plot=short&r=json`
@@ -36,6 +37,7 @@ module.exports = class QueryHandler {
 
   handleSeriesEpisode(series, episode) {
     this.apiResult = null;
+    this.searchMode = "SeriesEpisode"
     return new Promise((resolve, reject) => {
       resolve(series + " " + episode);
       reject(); // It will never come here.
@@ -44,31 +46,38 @@ module.exports = class QueryHandler {
 
   handleSeriesLatestEpisode(series) {
     this.apiResult = null;
+    this.searchMode = "LatestEpisode"
     let tvmaze = `http://api.tvmaze.com/singlesearch/shows?q=${encodeURIComponent(series)}&embed=previousepisode`;
     
     return new Promise((resolve, reject) => {
       this.queryApiService(tvmaze).then(values => {
 
-        this.apiType = "TVMaze"
-        this.apiResult = JSON.parse(values)
-        let obj = this.apiResult
-        if (obj && obj._embedded && obj._embedded.previousepisode) {
-          let previousEpisodeData = obj._embedded.previousepisode;
-          resolve(`${series} S${this.zeroPadding(previousEpisodeData.season, 2)}E${this.zeroPadding(previousEpisodeData.number, 2)}`)
+        if (values) {
+          this.apiType = "TVMaze"
+          this.apiResult = JSON.parse(values)
+          let obj = this.apiResult
+          if (obj && obj._embedded && obj._embedded.previousepisode) {
+            let previousEpisodeData = obj._embedded.previousepisode;
+            resolve(`${series} S${this.zeroPadding(previousEpisodeData.season, 2)}E${this.zeroPadding(previousEpisodeData.number, 2)}`)
+          }
         }
 
         reject({error: "No valid episode information found on tvmaze. URL used was:" + tvmaze})
+
       }, reason => {
-        reject(reason)
+        reject({error: "You were probably looking for a movie while using the latest: prefix. That is wrong!", reason: reason})
+      }).catch (reason => {
+        reject(reason);
       });
     });
   }
 
   handleWildSearch(query) {
     this.apiResult = null;
+    this.searchMode = "WildcardSearch"
     return new Promise((resolve, reject) => {
       resolve(query);
-      reject(); // It will never come here.
+      reject("Wild search rejected."); // It will never come here.
     });
   }
 
@@ -85,14 +94,12 @@ module.exports = class QueryHandler {
       console.log(options.url)
 
       curl.request(options, function (err, data, meta) {
-
-        if (data) {
-          resolve(data);
+        if (err) {
+          reject({error: "No valid information found in api service. We used url: " + url})
         } else {
-          reject(err);
+          resolve(data);
         }
-
-        resolve({error: "No valid information found in api service. We used url: " + url})
+        reject("Unable to contact API. Url used:" + url);
       });
     });
   }
@@ -117,13 +124,13 @@ module.exports = class QueryHandler {
     // Wrapping the promises from above in another promise allows us to enrich the return data
     // with some valuable metadata (poster, summary, etc..)
     let returnPromise = new Promise((resolve, reject) => {
+      let genericMeta = {name: data, keyword: data, searchMode: this.searchMode}
+      
       Promise.all(promises).then(values => { 
-        
-        let meta = {}
-        let apiData = this.apiResult;
+       let apiData = this.apiResult;
 
 //        console.log(apiData._embedded.previousepisode)
-
+        let meta = {}
         if (this.apiResult != null) {
           if (this.apiType == "TVMaze") {
             let episodeData = apiData._embedded.previousepisode
@@ -137,13 +144,13 @@ module.exports = class QueryHandler {
             meta = {image: apiData.Poster, 
                     summary: apiData.Plot, 
                     keyword: data, 
-                    name: apiData.Title, 
-                    season: null,
-                    episode: null}
+                    name: apiData.Title}
           }
         }
-        resolve({searchString: values[0], meta: meta});
+        
+        resolve({searchString: values[0], meta: Object.assign(meta, genericMeta)});
       }, reason => {
+        reason['meta'] = genericMeta;
         reject(reason);
       });
     });

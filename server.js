@@ -62,7 +62,7 @@ Promise.allSettled = function (promises) {
   }))));
 };
 
-let meta = null;
+let meta = {};
 
 function handleRequest(request, response, commandlineKeyword = null) {
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
@@ -80,9 +80,12 @@ function handleRequest(request, response, commandlineKeyword = null) {
     meta = values.meta;
     fetchDataAndSendRequest(response, values.searchString);
   }).catch(reason => {
-    console.log(`We tried to search for: ${keyword}`)
+    meta = reason.meta
+    keyword = decodeURIComponent(results[4].trim())
+//    console.log(results)
+//    console.log(`We tried to search for: ${keyword}`)
     // Search for whatever was given (index 4 of the matches!)
-    fetchDataAndSendRequest(response, decodeURIComponent(results[4].trim()));
+    fetchDataAndSendRequest(response, keyword);
   });
 }
 
@@ -98,7 +101,9 @@ function fetchDataAndSendRequest(response, keyword) {
   .then((data) => {
     let outputData = prepareOutputData(data);
 
-    if (meta != null) {
+    if (Object.keys(outputData).length == 0) {
+      outputData['error'] = `No results for query: ${keyword}`
+    } else {
       outputData['meta'] = meta;
     }
 
