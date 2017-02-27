@@ -4,6 +4,7 @@
   "description": "Small application that lets you query various torrent sites and outputs it in one generic JSON blob.",
   "main": "server.js",
   "dependencies": {
+    "cheerio": "^0.22.0",
     "curlrequest": "^1.0.1",
     "fast-xml2js": "*"
   },
