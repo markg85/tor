@@ -39,6 +39,8 @@ fs.readdir(indexersDir, function (err, files) {
 
   console.log("Loading indexers:")
 
+  files = ['kickass.js']
+
   for(let file of files) {
     let indexerFile = indexersDir + "/" + file
     console.log(" - " + file)
@@ -140,6 +142,14 @@ function prepareOutputData(data) {
     }
   }
 
+  let name = meta.name.replace(/[\\/:*?\"<>|]/, ' ').toLowerCase();
+
+  if (meta.season) {
+    name += ` s${meta.season}e${meta.episode}`
+  }
+
+  let names = name.replace(/\s\s+/g, ' ').split(' ');
+
   // Sort the filteredData by size. This also makes it sorted in the outputData list.
   filteredData.sort(function(a, b) {
     return parseFloat(b.size) - parseFloat(a.size);
@@ -149,13 +159,26 @@ function prepareOutputData(data) {
   let outputData = { "2160p" : [], "1080p": [], "720p" : [], "sd" : [] }
 
   for (let item of filteredData) {
-    // Get the classification of this item.
-    let classification = classifier.classify(item.name)
-    item.sizeHumanReadable = fileSizeIEC(item.size)
-    item.classification = classification
+    // Skip the item if not all the keywords occur in this string. Than proceed by getting the classification of this item.
+    // The skipping part filters out unneeded torrents that "come with the search results". Probably to show related searches.
 
-    // Add it to the output data.
-    outputData[classification.resolution].push(item)
+    let skip = false;
+    for (let namePart of names) {
+      if (item.name.toLowerCase().indexOf(namePart) < 0) {
+        skip = true;
+      }
+    }
+
+    if (skip) {
+      //console.log("Skipping: " + item.name)
+    } else {
+      let classification = classifier.classify(item.name)
+      item.sizeHumanReadable = fileSizeIEC(item.size)
+      item.classification = classification
+
+      // Add it to the output data.
+      outputData[classification.resolution].push(item)
+    }
   }
 
   // Lastly, remove empty elements
