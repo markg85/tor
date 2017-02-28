@@ -39,8 +39,6 @@ fs.readdir(indexersDir, function (err, files) {
 
   console.log("Loading indexers:")
 
-  files = ['kickass.js']
-
   for(let file of files) {
     let indexerFile = indexersDir + "/" + file
     console.log(" - " + file)
