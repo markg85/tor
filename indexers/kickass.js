@@ -38,7 +38,7 @@ module.exports = {
 
           if (name) {
             let hrSize = $('td', this).eq(1).text();
-            let url = childs.eq(3).attr('href');
+            let url = childs.eq(3).attr('href') + `&dn=${encodeURIComponent(name)}`;
             let sizeTag = ['MB', 'GB']
             let newSize = 0
 
