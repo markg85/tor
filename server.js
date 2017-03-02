@@ -148,15 +148,29 @@ function prepareOutputData(data) {
 
   let names = name.replace(/\s\s+/g, ' ').split(' ');
 
+  // Construct an array with infohash -> index. This effectively removes double values.
+  // Note: There must be a more efficient way to do this...
+  let uniqueInfohashes = []
+  for (let index in filteredData) {
+    let infohash = filteredData[index].url.match(/\burn:btih:([A-F\d]+)\b/i)[1].toLowerCase()
+    uniqueInfohashes[infohash] = index
+  }
+
+  // Now re-construct a new filteredArray (uniqueFilteredArray) which contains only unique values.
+  let uniqueFilteredData = []
+  for (let index in uniqueInfohashes) {
+    uniqueFilteredData.push(filteredData[uniqueInfohashes[index]])
+  }
+
   // Sort the filteredData by size. This also makes it sorted in the outputData list.
-  filteredData.sort(function(a, b) {
+  uniqueFilteredData.sort(function(a, b) {
     return parseFloat(b.size) - parseFloat(a.size);
   });
 
   // Define the output arrays. This is also the order in which they will appear on the screen.
   let outputData = { "2160p" : [], "1080p": [], "720p" : [], "sd" : [] }
 
-  for (let item of filteredData) {
+  for (let item of uniqueFilteredData) {
     // Skip the item if not all the keywords occur in this string. Than proceed by getting the classification of this item.
     // The skipping part filters out unneeded torrents that "come with the search results". Probably to show related searches.
 
