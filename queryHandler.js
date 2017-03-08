@@ -137,7 +137,7 @@ module.exports = class QueryHandler {
             meta = {image: apiData.image.original, 
                     summary: apiData.summary, 
                     keyword: data, 
-                    name: apiData.name.replace(`'`, ``),
+                    name: apiData.name.replace(`'`, ` `),
                     season: this.zeroPadding(episodeData.season, 2),
                     episode: this.zeroPadding(episodeData.number, 2)}
           } else if (this.apiType == "OMDb") {
