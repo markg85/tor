@@ -29,7 +29,7 @@ module.exports = {
         let returnData = [];
 
         parseString(html, function (err, result) {
-          if (result && result.rss) {
+          if (result && result.rss && result.rss.channel[0].item) {
             for (let item of result.rss.channel[0].item) {
               let name = item.title[0];
               let url = item.magnetURI[0];
