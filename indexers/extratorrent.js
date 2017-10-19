@@ -17,6 +17,8 @@ module.exports = {
         retries: 3
       };
 
+      console.log(options.url)
+
       curl.request(options, function (err, data, meta) {
         if (data) {
           resolve(parseHtml(data))

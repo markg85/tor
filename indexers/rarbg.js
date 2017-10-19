@@ -13,6 +13,8 @@ module.exports = {
         retries: 3
       };
 
+      console.log(options.url)
+
       curl.request(options, function (err, data, meta) {
         // This log prints the curl command line. Good for debugging purposes.
         //console.log('%s %s', meta.cmd, meta.args.join(' '));
