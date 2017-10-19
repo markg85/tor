@@ -65,6 +65,7 @@ Promise.allSettled = function (promises) {
 let meta = {};
 
 function handleRequest(request, response, commandlineKeyword = null) {
+  console.log("..handleRequest")
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
   let results = keyword.match(/(\/search\/?)?((latest: ?)?(.*))/i);
   keyword = decodeURIComponent(results[2].trim());
@@ -90,6 +91,7 @@ function handleRequest(request, response, commandlineKeyword = null) {
 }
 
 function fetchDataAndSendRequest(response, keyword) {
+  console.log("..fetchDataAndSendRequest")
   // Tell the indexers which thing to look for.
   let indexerPromises = []
   for (let indexer of indexerObjects) {
@@ -115,6 +117,7 @@ function fetchDataAndSendRequest(response, keyword) {
 }
 
 function handleResponse(response, data) {
+  console.log("..handleResponse")
   // If we have a response object (we probably have an http request) so return to that.
   // If we don't then we're on the console.
   if (response) {
@@ -130,6 +133,7 @@ function handleResponse(response, data) {
 }
 
 function prepareOutputData(data) {
+  console.log("..prepareOutputData")
   // First filter the objects to only get the data of those that have values.
   let filteredData = []
   for (let objData of data) {
