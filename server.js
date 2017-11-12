@@ -135,15 +135,23 @@ function handleResponse(response, data) {
 function prepareOutputData(data) {
   console.log("..prepareOutputData")
   // First filter the objects to only get the data of those that have values.
+  let uniqueInfohashes = new Set()
   let filteredData = []
   for (let objData of data) {
-    if (objData.state = "filfilled" && objData.value != null) {
-      if (objData.value.length > 0) {
-        filteredData.push(...objData.value)
+    if (objData.state == "fulfilled") {
+      // Iterate over the arrays and filter for unique.
+      for (let obj of objData.value) {
+        let infohash = obj.url.match(/\burn:btih:([A-F\d]+)\b/i)[1].toLowerCase()
+
+        if (!uniqueInfohashes.has(infohash)) {
+          filteredData.push(obj)
+          uniqueInfohashes.add(infohash)
+        }
       }
     }
   }
 
+  // Here filteredData contains all unique terrents. It might still contains too much though. That is filtered out next.
   let name = meta.name.replace(/[\\/:*?\"<>|]/, ' ').toLowerCase();
 
   if (meta.season) {
@@ -152,49 +160,32 @@ function prepareOutputData(data) {
 
   let names = name.replace(/\s\s+/g, ' ').split(' ');
 
-  // Construct an array with infohash -> index. This effectively removes double values.
-  // Note: There must be a more efficient way to do this...
-  let uniqueInfohashes = []
-  for (let index in filteredData) {
-    let infohash = filteredData[index].url.match(/\burn:btih:([A-F\d]+)\b/i)[1].toLowerCase()
-    uniqueInfohashes[infohash] = index
-  }
-
-  // Now re-construct a new filteredArray (uniqueFilteredArray) which contains only unique values.
-  let uniqueFilteredData = []
-  for (let index in uniqueInfohashes) {
-    uniqueFilteredData.push(filteredData[uniqueInfohashes[index]])
-  }
+  // Whatever is in the names array, must occur in the name of the torrent.
+  filteredData = filteredData.filter((obj) => {
+    for (let namePart of names) {
+      if (obj.name.toLowerCase().indexOf(namePart) < 0) {
+        return false;
+      }
+    }
+    return true;
+  })
 
   // Sort the filteredData by size. This also makes it sorted in the outputData list.
-  uniqueFilteredData.sort(function(a, b) {
+  filteredData.sort(function(a, b) {
     return parseFloat(b.size) - parseFloat(a.size);
   });
 
-  // Define the output arrays. This is also the order in which they will appear on the screen.
+  // The data - as is - is now complete. But still rather crude as we don't yet know which quality which item is.
+  // So classify every item and put it in the correct outputData array (grouped by resolution).
   let outputData = { "2160p" : [], "1080p": [], "720p" : [], "sd" : [] }
 
-  for (let item of uniqueFilteredData) {
-    // Skip the item if not all the keywords occur in this string. Than proceed by getting the classification of this item.
-    // The skipping part filters out unneeded torrents that "come with the search results". Probably to show related searches.
-
-    let skip = false;
-    for (let namePart of names) {
-      if (item.name.toLowerCase().indexOf(namePart) < 0) {
-        skip = true;
-      }
-    }
-
-    if (skip) {
-      //console.log("Skipping: " + item.name)
-    } else {
-      let classification = classifier.classify(item.name)
-      item.sizeHumanReadable = fileSizeIEC(item.size)
-      item.classification = classification
+  for (let obj of filteredData) {
+      let classification = classifier.classify(obj.name)
+      obj.sizeHumanReadable = fileSizeIEC(obj.size)
+      obj.classification = classification
 
       // Add it to the output data.
-      outputData[classification.resolution].push(item)
-    }
+      outputData[classification.resolution].push(obj)
   }
 
   // Lastly, remove empty elements
