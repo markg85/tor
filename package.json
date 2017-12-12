@@ -6,7 +6,8 @@
   "dependencies": {
     "cheerio": "^0.22.0",
     "curlrequest": "^1.0.1",
-    "fast-xml2js": "*"
+    "fast-xml2js": "*",
+    "seriesmeta": "^0.1.3"
   },
   "devDependencies": {},
   "scripts": {

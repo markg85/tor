@@ -5,7 +5,7 @@ let fs = require("fs"),
     http = require('http'),
     classifier = require('./classifier.js'),
     latest = require('./latest.js'),
-    QueryHandler = require('./queryHandler')
+    handler = require('./queryHandler')
 
 let indexersDir = path.dirname(require.main.filename) + "/indexers"
 let indexerObjects = []
@@ -76,44 +76,42 @@ function handleRequest(request, response, commandlineKeyword = null) {
     return;
   }
 
-  let handler = new QueryHandler();
   handler.parse(keyword).then(values => {
-    meta = values.meta;
-    fetchDataAndSendRequest(response, values.searchString);
-  }).catch(reason => {
-    meta = reason.meta
-    keyword = decodeURIComponent(results[4].trim())
-//    console.log(results)
-//    console.log(`We tried to search for: ${keyword}`)
-    // Search for whatever was given (index 4 of the matches!)
-    fetchDataAndSendRequest(response, keyword);
+    handler.composeSearchString(values[0]);
+    // Tis not just adds torrents, it also makes sure the results are always an array, even when just 1 thing was requested.
+    return enrichWithIndexerSearchResults(response, values);
+  })
+  .then((data) => {
+    handleResponse(response, data);
+  })
+  .catch(reason => {
+    handleResponse(response, reason);
   });
 }
 
-function fetchDataAndSendRequest(response, keyword) {
-  console.log("..fetchDataAndSendRequest")
-  // Tell the indexers which thing to look for.
-  let indexerPromises = []
-  for (let indexer of indexerObjects) {
-    indexer.searchString = keyword
-    indexerPromises.push(indexer.execute())
+async function enrichWithIndexerSearchResults(response, data) {
+  // Iterate over all search results from the previous step and add indexer results to them.
+  let results = data[0];
+
+  // First: make it an array, to simplify it further down.
+  if (!Array.isArray(results)) {
+    results = [results]
   }
+  
+  for (let result of results) {
+    // Build a batch of indexers to request data from
+    let indexerPromises = []
 
-  Promise.allSettled(indexerPromises)
-  .then((data) => {
-    let outputData = prepareOutputData(data);
-
-    if (Object.keys(outputData).length == 0) {
-      outputData['error'] = `No results for query: ${keyword}`
-    } else {
-      outputData['meta'] = meta;
+    for (let indexer of indexerObjects) {
+      indexer.searchString = result.searchQuery
+      indexerPromises.push(indexer.execute())
     }
 
-    handleResponse(response, outputData);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+    result.torrents = prepareOutputData(result, await Promise.allSettled(indexerPromises));
+  }
+
+  data[0] = results;
+  return data;
 }
 
 function handleResponse(response, data) {
@@ -132,8 +130,9 @@ function handleResponse(response, data) {
   }
 }
 
-function prepareOutputData(data) {
+function prepareOutputData(input, data) {
   console.log("..prepareOutputData")
+
   // First filter the objects to only get the data of those that have values.
   let uniqueInfohashes = new Set()
   let filteredData = []
@@ -152,12 +151,7 @@ function prepareOutputData(data) {
   }
 
   // Here filteredData contains all unique terrents. It might still contains too much though. That is filtered out next.
-  let name = meta.name.replace(/[\\/:*?\"<>|]/, ' ').toLowerCase();
-
-  if (meta.season) {
-    name += ` s${meta.season}e${meta.episode}`
-  }
-
+  let name = input.searchQuery.replace(/[\\/:*?\"<>|]/, ' ').toLowerCase();
   let names = name.replace(/\s\s+/g, ' ').split(' ');
 
   // Whatever is in the names array, must occur in the name of the torrent.
@@ -171,7 +165,7 @@ function prepareOutputData(data) {
   })
 
   // Sort the filteredData by size. This also makes it sorted in the outputData list.
-  filteredData.sort(function(a, b) {
+  filteredData.sort((a, b) => {
     return parseFloat(b.size) - parseFloat(a.size);
   });
 
@@ -180,12 +174,12 @@ function prepareOutputData(data) {
   let outputData = { "2160p" : [], "1080p": [], "720p" : [], "sd" : [] }
 
   for (let obj of filteredData) {
-      let classification = classifier.classify(obj.name)
-      obj.sizeHumanReadable = fileSizeIEC(obj.size)
-      obj.classification = classification
+    let classification = classifier.classify(obj.name)
+    obj.sizeHumanReadable = fileSizeIEC(obj.size)
+    obj.classification = classification
 
-      // Add it to the output data.
-      outputData[classification.resolution].push(obj)
+    // Add it to the output data.
+    outputData[classification.resolution].push(obj)
   }
 
   // Lastly, remove empty elements
@@ -218,7 +212,7 @@ let server = http.createServer(function(request, response) {
 });
 
 //Lets start our server
-server.listen(port, function(){
+//server.listen(port, function(){
     //Callback triggered when server is successfully listening. Hurray!
-    console.log("Server listening on: http://localhost:%s", port);
-});
+//    console.log("Server listening on: http://localhost:%s", port);
+//});
