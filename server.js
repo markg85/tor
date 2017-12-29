@@ -62,8 +62,6 @@ Promise.allSettled = function (promises) {
   }))));
 };
 
-let meta = {};
-
 function handleRequest(request, response, commandlineKeyword = null) {
   console.log("..handleRequest")
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
@@ -77,8 +75,9 @@ function handleRequest(request, response, commandlineKeyword = null) {
   }
 
   handler.parse(keyword).then(values => {
-    handler.composeSearchString(values[0]);
-    // Tis not just adds torrents, it also makes sure the results are always an array, even when just 1 thing was requested.
+    handler.composeSearchString(values.results);
+
+    // This not just adds torrents, it also makes sure the results are always an array, even when just 1 thing was requested.
     return enrichWithIndexerSearchResults(response, values);
   })
   .then((data) => {
@@ -91,7 +90,7 @@ function handleRequest(request, response, commandlineKeyword = null) {
 
 async function enrichWithIndexerSearchResults(response, data) {
   // Iterate over all search results from the previous step and add indexer results to them.
-  let results = data[0];
+  let results = data.results[0];
 
   // First: make it an array, to simplify it further down.
   if (!Array.isArray(results)) {
@@ -110,7 +109,7 @@ async function enrichWithIndexerSearchResults(response, data) {
     result.torrents = prepareOutputData(result, await Promise.allSettled(indexerPromises));
   }
 
-  data[0] = results;
+  data.results = results;
   return data;
 }
 
@@ -183,11 +182,13 @@ function prepareOutputData(input, data) {
   }
 
   // Lastly, remove empty elements
+  /*
   for (let item in outputData) {
     if (outputData[item].length === 0) {
       delete outputData[item];
     }
   }
+  */
 
   return outputData;
 }
@@ -212,7 +213,7 @@ let server = http.createServer(function(request, response) {
 });
 
 //Lets start our server
-//server.listen(port, function(){
+server.listen(port, function(){
     //Callback triggered when server is successfully listening. Hurray!
-//    console.log("Server listening on: http://localhost:%s", port);
-//});
+    console.log("Server listening on: http://localhost:%s", port);
+});

@@ -17,7 +17,7 @@ class QueryHandler {
   async apiWrapper(apiFunctionData, series) {
     let one = await apiFunctionData;
     let two = await seriesmeta.metadata(series);
-    return [one, two];
+    return { results: one, meta: two};
   }
 
   parse(data) {
