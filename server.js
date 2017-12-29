@@ -90,10 +90,10 @@ function handleRequest(request, response, commandlineKeyword = null) {
 
 async function enrichWithIndexerSearchResults(response, data) {
   // Iterate over all search results from the previous step and add indexer results to them.
-  let results = data.results[0];
+  let results = data.results;
 
   // First: make it an array, to simplify it further down.
-  if (!Array.isArray(results)) {
+  if (!Array.isArray(data.results)) {
     results = [results]
   }
   
