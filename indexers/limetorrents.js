@@ -1,7 +1,7 @@
 "use strict";
 
 let curl = require('curlrequest');
-let parseString = require('fast-xml2js').parseString
+let parseString = require('@pjaromin/fast-xml2js').parseString
 
 function encode(str) {
     let result = "";

@@ -9,7 +9,7 @@ module.exports = {
       let searchString = module.exports.searchString
 
       let options = {
-        url: `https://kickasstor.ws/search/${encodeURIComponent(searchString)}/`,
+        url: `https://kickasstorrents.to/search/${encodeURIComponent(searchString)}/`,
         useragent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
         compressed: true,
         insecure: true,
