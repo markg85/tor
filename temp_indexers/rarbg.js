@@ -19,6 +19,9 @@ module.exports = {
         // This log prints the curl command line. Good for debugging purposes.
         //console.log('%s %s', meta.cmd, meta.args.join(' '));
         let searchString = module.exports.searchString
+
+        console.log(data)
+
         data = JSON.parse(data)
 
         if (data && data.token) {

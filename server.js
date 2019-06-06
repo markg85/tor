@@ -97,7 +97,8 @@ async function enrichWithIndexerSearchResults(response, data) {
     results = [results]
   }
   
-  for (let result of results) {
+  // for (let result of results) {
+    let result = results[0]
     // Build a batch of indexers to request data from
     let indexerPromises = []
 
@@ -107,9 +108,9 @@ async function enrichWithIndexerSearchResults(response, data) {
     }
 
     result.torrents = prepareOutputData(result, await Promise.allSettled(indexerPromises));
-  }
+  // }
 
-  data.results = results;
+  data.results = [result];
   return data;
 }
 
@@ -194,7 +195,7 @@ function prepareOutputData(input, data) {
 }
 
 //Create a server
-let port = 80
+let port = 3000
 let server = http.createServer(function(request, response) {
   // Handle favicon.ico
   if (request.url === '/favicon.ico') {
