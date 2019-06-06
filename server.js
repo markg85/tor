@@ -195,7 +195,7 @@ function prepareOutputData(input, data) {
 }
 
 //Create a server
-let port = 3000
+let port = 80
 let server = http.createServer(function(request, response) {
   // Handle favicon.ico
   if (request.url === '/favicon.ico') {
