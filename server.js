@@ -4,7 +4,6 @@ let fs = require("fs"),
     path = require("path"),
     http = require('http'),
     classifier = require('./classifier.js'),
-    latest = require('./latest.js'),
     handler = require('./queryHandler')
 
 let indexersDir = path.dirname(require.main.filename) + "/indexers"
