@@ -4,10 +4,10 @@
   "description": "Small application that lets you query various torrent sites and outputs it in one generic JSON blob.",
   "main": "server.js",
   "dependencies": {
-    "cheerio": "^0.22.0",
+    "cheerio": "^1.0.0-rc.3",
     "curlrequest": "^1.0.1",
-    "seriesmeta": "^0.1.3",
-    "xml2js": "^0.4.19"
+    "seriesmeta": "^0.2.2",
+    "xml2js": "^0.4.22"
   },
   "devDependencies": {},
   "scripts": {
