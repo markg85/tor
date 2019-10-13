@@ -155,7 +155,7 @@ function prepareOutputData(input, data) {
     }
   }
 
-  // Here filteredData contains all unique terrents. It might still contains too much though. That is filtered out next.
+  // Here filteredData contains all unique torrents. It might still contains too much though. That is filtered out next.
   let name = input.searchQuery.replace(/[\\/:*?\"<>|]/, ' ').toLowerCase();
   let names = name.replace(/\s\s+/g, ' ').split(' ');
 
