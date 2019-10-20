@@ -3,6 +3,7 @@
 module.exports = {
   classify: function(input) {
     let codec = `x264`
+    let bitdepth = 8 // 8 bit, 10 bit...
 
     // If we have x256/hevc content
     if (input.search(/x265|h265|h\.265|hevc/i) > 0) {
@@ -42,6 +43,10 @@ module.exports = {
       source = 'bluray-full'
     }
 
-    return {codec: codec, resolution: resolution, source: source}
+    if (input.search(/10-bit|10 bit|10bit/i) > 0) {
+      bitdepth = 10
+    }
+
+    return {codec: codec, resolution: resolution, source: source, bitdepth: bitdepth}
   }
 };
