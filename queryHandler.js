@@ -1,6 +1,36 @@
 'use strict';
-
+const crypto = require('crypto')
 const seriesmeta = require('seriesmeta');
+const fs = require('fs');
+const https = require('https');
+
+function saveImageToDisk(url, localPath) {
+  return new Promise((resolve, reject) => {
+    let file = fs.createWriteStream(localPath);
+    https.get(url, function(response) {
+      response.pipe(file);
+    });
+    resolve();
+  });
+}
+
+seriesmeta.imageObjectHandler = (images) => {
+  for (let obj in images) {
+    images[obj] = images[obj].replace(/http:/i, "https:")
+  }
+
+  let hash = crypto.createHash('md5').update(images['original']).digest("hex")
+  let ext = images['original'].split('.').pop();
+  let file = `${hash}.${ext}`
+
+  if (!fs.existsSync(`./imagecache/${file}`)) {
+    saveImageToDisk(images['original'], `./imagecache/${file}`)
+  }
+
+  images['original'] = `https://i.sc2.nl/${file}`
+  images['medium'] = `https://i.sc2.nl/210x295/${file}`
+  return images;
+}
 
 class QueryHandler {
   constructor(queryType) {
