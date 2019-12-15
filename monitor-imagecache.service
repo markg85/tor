@@ -1,0 +1,10 @@
+[Service]
+ExecStart=/home/docker-data/tor/monitor-imagecache.sh
+Restart=always
+RestartSec=1
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=monitor-imagecache
+
+[Install]
+WantedBy=multi-user.target
