@@ -23,12 +23,17 @@ seriesmeta.imageObjectHandler = (images) => {
   let ext = images['original'].split('.').pop();
   let file = `${hash}.${ext}`
 
+  // Here it stores the source file, likely a jpg one.
   if (!fs.existsSync(`./imagecache/${file}`)) {
     saveImageToDisk(images['original'], `./imagecache/${file}`)
   }
 
-  images['original'] = `https://i.sc2.nl/${file}`
-  images['medium'] = `https://i.sc2.nl/210x295/${file}`
+  // ... internally on the server we're monitoring for new files being writtenbundleRenderer.
+  // if that new file is not a webp file, we convert the input to webp.
+  // thus here we use .webp even though at this very moment we don't have that file yet.
+  // We well in about half a second after this call though.
+  images['original'] = `https://i.sc2.nl/${hash}.webp`
+  images['medium'] = `https://i.sc2.nl/210x295/${hash}.webp`
   return images;
 }
 
