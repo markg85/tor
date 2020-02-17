@@ -28,7 +28,7 @@ seriesmeta.imageObjectHandler = (images) => {
     saveImageToDisk(images['original'], `./imagecache/${file}`)
   }
 
-  // ... internally on the server we're monitoring for new files being writtenbundleRenderer.
+  // ... internally on the server we're monitoring for new files being written.
   // if that new file is not a webp file, we convert the input to webp.
   // thus here we use .webp even though at this very moment we don't have that file yet.
   // We well in about half a second after this call though.
@@ -94,12 +94,19 @@ class QueryHandler {
     if (this.queryType == 'SERIES_LATEST') {
       for (let episode of data) {
         episode.searchQuery = `${episode.series} S${this.zeroPadding(episode.season)}E${this.zeroPadding(episode.episode)}`
+        episode.searchQuery = episode.searchQuery.replace(/[^a-zA-Z0-9\\. ]/g,"")
+        .replace(/[\\. ]/g," ")
+        .replace(/\s\s+/g, ' ');
       }
     } else if (this.queryType == 'SERIES_EXACT') {
       // Our input is not an array because we we were searching for 1 exact episode. Thus we have an object containing the data.
       data.searchQuery = `${data.series} S${this.zeroPadding(data.season)}E${this.zeroPadding(data.episode)}`
+      data.searchQuery = data.searchQuery.replace(/[^a-zA-Z0-9\\. ]/g,"")
+      .replace(/[\\. ]/g," ")
+      .replace(/\s\s+/g, ' ');
     }
   }
+
 
 };
 
