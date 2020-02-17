@@ -9,7 +9,7 @@ module.exports = {
       let searchString = module.exports.searchString
 
       let options = {
-        url: `https://kickasstorrents.to/search/${encodeURIComponent(searchString)}/`,
+        url: `https://katcr.co/katsearch/page/1/${encodeURIComponent(searchString)}`,
         useragent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
         compressed: true,
         insecure: true,
@@ -33,12 +33,11 @@ module.exports = {
         let returnData = []
 
         $('tr').each(function(i, elem) {
-          let childs = $('a', this);
-          let name = childs.eq(0).attr('title');
+          let name = $('a.torrents_table__torrent_title', this).text().replace(/^\s*[\r\n]/gm, '').trim();
 
           if (name) {
             let hrSize = $('td', this).eq(1).text();
-            let url = childs.eq(3).attr('href') + `&dn=${encodeURIComponent(name)}`;
+            let url = $('.kf__magnet', this).parent().attr('href');
             let sizeTag = ['MB', 'GB']
             let newSize = 0
 
