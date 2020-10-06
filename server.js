@@ -63,6 +63,24 @@ Promise.allSettled = function (promises) {
 
 function handleRequest(request, response, commandlineKeyword = null) {
   console.log("..handleRequest")
+
+  let url = request.url.substr(1);
+  if (url.startsWith(`hasNext`)) {
+    let components = url.split(`:`)
+
+    handler.hasNext(components[1], components[2])
+    .then(data => handleResponse(response, data.results))
+    .catch(err => handleResponse(response, err));
+    return
+  } else if (url.startsWith(`hasPrevious`)) {
+    let components = url.split(`:`)
+
+    handler.hasPrevious(components[1], components[2])
+    .then(data => handleResponse(response, data.results))
+    .catch(err => handleResponse(response, err));
+    return;
+  }
+
   let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
   let results = keyword.match(/(\/search\/?)?((latest: ?)?(.*))/i);
   keyword = decodeURIComponent(results[2].trim());
@@ -124,7 +142,7 @@ function handleResponse(response, data) {
     // null, 4 -- this is to have nice json formatting.
     response.end(JSON.stringify(data, null, 4))
   } else {
-    console.log(data)
+    console.log(JSON.stringify(data, null, 4))
     process.exit(0);
   }
 }
