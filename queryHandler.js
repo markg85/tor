@@ -107,7 +107,31 @@ class QueryHandler {
     }
   }
 
+  hasNext(imdb, input) {
+    let seriesepisodematch = null
+    if (seriesepisodematch = input.match(/s([0-9]{1,2})e([0-9]{1,2})/i)) {
+      let season = seriesepisodematch[1].trim()
+      let episode = seriesepisodematch[2].trim()
 
+      if (imdb.match(/^((t{2})?(\d{7}))$/i)) {
+        return this.apiWrapper(seriesmeta.hasNextEpisode(season, episode, imdb), imdb);
+      }
+      return Promise.reject({error: `No hasNext response for ${imdb}`})
+    }
+  }
+
+  hasPrevious(imdb, input) {
+    let seriesepisodematch = null
+    if (seriesepisodematch = input.match(/s([0-9]{1,2})e([0-9]{1,2})/i)) {
+      let season = seriesepisodematch[1].trim()
+      let episode = seriesepisodematch[2].trim()
+
+      if (imdb.match(/^((t{2})?(\d{7}))$/i)) {
+        return this.apiWrapper(seriesmeta.hasPreviousEpisode(season, episode, imdb), imdb);
+      }
+      return Promise.reject({error: `No hasPrevious response for ${imdb}`})
+    }
+  }
 };
 
 module.exports = new QueryHandler();
