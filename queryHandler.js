@@ -58,7 +58,7 @@ class QueryHandler {
   parse(data) {
     // Determine what we are trying to parse.
     let newData = data.replace(/\./g, ' ')
-    let matchResult = newData.match(/^((t{2})?(\d{7}))$/i);
+    let matchResult = newData.match(/^((t{2})?(\d{7,8}))$/i);
 
     if (matchResult) {
       this.queryType = 'IMDB_SEARCH' // Could be a while series, a specific episode or a movie...
@@ -113,7 +113,7 @@ class QueryHandler {
       let season = seriesepisodematch[1].trim()
       let episode = seriesepisodematch[2].trim()
 
-      if (imdb.match(/^((t{2})?(\d{7}))$/i)) {
+      if (imdb.match(/^((t{2})?(\d{7,8}))$/i)) {
         return this.apiWrapper(seriesmeta.hasNextEpisode(season, episode, imdb), imdb);
       }
       return Promise.reject({error: `No hasNext response for ${imdb}`})
@@ -126,7 +126,7 @@ class QueryHandler {
       let season = seriesepisodematch[1].trim()
       let episode = seriesepisodematch[2].trim()
 
-      if (imdb.match(/^((t{2})?(\d{7}))$/i)) {
+      if (imdb.match(/^((t{2})?(\d{7,8}))$/i)) {
         return this.apiWrapper(seriesmeta.hasPreviousEpisode(season, episode, imdb), imdb);
       }
       return Promise.reject({error: `No hasPrevious response for ${imdb}`})
