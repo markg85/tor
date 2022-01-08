@@ -64,16 +64,18 @@ Promise.allSettled = function (promises) {
 function handleRequest(request, response, commandlineKeyword = null) {
   console.log("..handleRequest")
 
-  let url = request.url.substr(1);
-  if (url.startsWith(`hasNext`)) {
-    let components = url.split(`:`)
+  let rawKeyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
+  console.log(rawKeyword)
+
+  if (rawKeyword.startsWith(`hasNext`)) {
+    let components = rawKeyword.split(`:`)
 
     handler.hasNext(components[1], components[2])
     .then(data => handleResponse(response, data.results))
     .catch(err => handleResponse(response, err));
     return
-  } else if (url.startsWith(`hasPrevious`)) {
-    let components = url.split(`:`)
+  } else if (rawKeyword.startsWith(`hasPrevious`)) {
+    let components = rawKeyword.split(`:`)
 
     handler.hasPrevious(components[1], components[2])
     .then(data => handleResponse(response, data.results))
@@ -81,7 +83,7 @@ function handleRequest(request, response, commandlineKeyword = null) {
     return;
   }
 
-  let keyword = (commandlineKeyword != null) ? commandlineKeyword : request.url;
+  let keyword = rawKeyword;
   let results = keyword.match(/(\/search\/?)?((latest: ?)?(.*))/i);
   keyword = decodeURIComponent(results[2].trim());
 
@@ -218,7 +220,7 @@ function prepareOutputData(input, data) {
 }
 
 //Create a server
-let port = 80
+let port = 8085
 let server = http.createServer(function(request, response) {
   // Handle favicon.ico
   if (request.url === '/favicon.ico') {
