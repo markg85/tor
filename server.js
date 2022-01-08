@@ -220,7 +220,7 @@ function prepareOutputData(input, data) {
 }
 
 //Create a server
-let port = 8085
+let port = 80
 let server = http.createServer(function(request, response) {
   // Handle favicon.ico
   if (request.url === '/favicon.ico') {
@@ -239,7 +239,7 @@ let server = http.createServer(function(request, response) {
 });
 
 //Lets start our server
-server.listen(port, function(){
+server.listen(port, '0.0.0.0', function(){
     //Callback triggered when server is successfully listening. Hurray!
     console.log("Server listening on: http://localhost:%s", port);
 });
