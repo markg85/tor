@@ -47,6 +47,10 @@ module.exports = {
         let returnData = []
         let jsonData = JSON.parse(data);
 
+        if (!jsonData) {
+          return returnData;
+        }
+
         for (let obj of jsonData) {
             if (obj.len > 1000) {
                 let magnet = `magnet:?xt=urn:btih:${obj.id}&dn=${encodeURIComponent(obj.text).replace(/%20/g, '+')}&tr=${encodeURIComponent(`udp://tracker.publicbt.com/announce`)}`
