@@ -82,7 +82,7 @@ class QueryHandler {
       // It can be a serie or a movie at this point. We just don't know since just a "name" is provided.
       // To be re-implemented
       //promises.push(this.handleWildSearch(newData));
-      return Promise.reject(`To be re-implemented: ${this.queryType}`);
+      return Promise.resolve({results:[{searchQuery: data}]});
     }
   }
 
