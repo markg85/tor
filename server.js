@@ -160,16 +160,15 @@ function prepareOutputData(input, data) {
       // Iterate over the arrays and filter for unique.
       for (let obj of objData.value) {
         let potentialInfoHash = obj.url.match(/\burn:btih:([A-F\d]+)\b/i)
-        if (potentialInfoHash == null) {
-          // Skipping this iteration, the magnet link does not contain an infohash
-          continue;
-        }
-        
-        let infohash = potentialInfoHash[1].toLowerCase()
+        if (potentialInfoHash) {
+          let infohash = potentialInfoHash[1].toLowerCase()
 
-        if (!uniqueInfohashes.has(infohash)) {
+          if (!uniqueInfohashes.has(infohash)) {
+            filteredData.push(obj)
+            uniqueInfohashes.add(infohash)
+          }
+        } else {
           filteredData.push(obj)
-          uniqueInfohashes.add(infohash)
         }
       }
     }
