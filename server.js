@@ -154,6 +154,7 @@ function prepareOutputData(input, data) {
 
   // First filter the objects to only get the data of those that have values.
   let uniqueInfohashes = new Set()
+  let uniqueNames = new Set()
   let filteredData = []
   for (let objData of data) {
     if (objData.state == "fulfilled") {
@@ -168,13 +169,24 @@ function prepareOutputData(input, data) {
             uniqueInfohashes.add(infohash)
           }
         } else {
-          filteredData.push(obj)
+          let name = obj.name.replace(/[\\/\.:*?\"<>|]/, ' ').toLowerCase().trim();
+          if (!uniqueNames.has(name)) {
+            uniqueNames.add(name)
+            filteredData.push(obj)
+          }
         }
       }
     }
   }
 
-  // Here filteredData contains all unique torrents. It might still contains too much though. That is filtered out next.
+  // filter out name duplicates
+  filteredData = filteredData.filter((value, index, self) =>
+    index === self.findIndex((t) => (
+      t.name.replace(/[\\/:*?\"<>|]/, ' ').toLowerCase().trim() === value.name.replace(/[\\/:*?\"<>|]/, ' ').toLowerCase().trim() || t.size == value.size
+    ))
+  )
+
+  // Here filteredData contains all unique torrents. It might still contain too much though. That is filtered out next.
   let name = input.searchQuery.replace(/[\\/:*?\"<>|]/, ' ').toLowerCase();
   let names = name.replace(/\s\s+/g, ' ').split(' ');
 
