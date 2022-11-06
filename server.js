@@ -238,12 +238,6 @@ let server = http.createServer(function(request, response) {
     response.writeHead(200, {'Content-Type': 'image/x-icon'} );
     response.end();
   } else {
-    // Allow javascript sites to request this API.
-    if (response)
-    {
-      response.setHeader("Access-Control-Allow-Origin", "*");
-    }
-    
     // Handle the request.
     handleRequest(request, response);
   }
