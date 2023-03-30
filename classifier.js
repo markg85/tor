@@ -4,6 +4,7 @@ module.exports = {
   classify: function(input) {
     let codec = `x264`
     let bitdepth = 8 // 8 bit, 10 bit...
+    let hdrtype = `sdr` // sdr, hdr, dv. No specific hdr10
 
     // If we have x256/hevc content
     if (input.search(/x265|h265|h\.265|hevc/i) > 0) {
@@ -47,6 +48,16 @@ module.exports = {
       bitdepth = 10
     }
 
-    return {codec: codec, resolution: resolution, source: source, bitdepth: bitdepth}
+    if (input.search(/hdr|dv/i) > 0) {
+      bitdepth = 10
+
+      if (input.search(/dv/i) > 0) {
+        hdrtype = `dv`
+      } else if (input.search(/hdr/i) > 0) {
+        hdrtype = `hdr`
+      }
+    }
+
+    return {codec: codec, resolution: resolution, source: source, bitdepth: bitdepth, hdrtype: hdrtype}
   }
 };
