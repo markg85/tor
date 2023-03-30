@@ -7,7 +7,7 @@ module.exports = {
     let hdrtype = `sdr` // sdr, hdr, dv. No specific hdr10
 
     // If we have x256/hevc content
-    if (input.search(/x265|h265|h\.265|hevc/i) > 0) {
+    if (input.search(/x265|h265|h\.265|h 265|hevc/i) > 0) {
       codec = 'x265'
     }
 
