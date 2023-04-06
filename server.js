@@ -95,6 +95,8 @@ function handleRequest(request, response, commandlineKeyword = null) {
 
   handler.parse(keyword).then(values => {
     handler.composeSearchString(values.results);
+    
+    // console.log(response)
 
     // This not just adds torrents, it also makes sure the results are always an array, even when just 1 thing was requested.
     return enrichWithIndexerSearchResults(response, values);
@@ -161,19 +163,24 @@ function prepareOutputData(input, data) {
       // Iterate over the arrays and filter for unique.
       for (let obj of objData.value) {
         let potentialInfoHash = obj.url.match(/\burn:btih:([A-F\d]+)\b/i)
+        let name = obj.name.replace(/[\]\[\/\/\.:* ?\"<>\-|]/gm, '').toLowerCase().trim();
+        obj.ntrim = name;
+
+        if (uniqueNames.has(name)) {
+            continue;
+        }
+
         if (potentialInfoHash) {
           let infohash = potentialInfoHash[1].toLowerCase()
 
           if (!uniqueInfohashes.has(infohash)) {
             filteredData.push(obj)
+            uniqueNames.add(name)
             uniqueInfohashes.add(infohash)
           }
         } else {
-          let name = obj.name.replace(/[\\/\.:*?\"<>|]/, ' ').toLowerCase().trim();
-          if (!uniqueNames.has(name)) {
-            uniqueNames.add(name)
-            filteredData.push(obj)
-          }
+          uniqueNames.add(name)
+          filteredData.push(obj)
         }
       }
     }
