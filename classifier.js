@@ -48,14 +48,14 @@ module.exports = {
       bitdepth = 10
     }
 
-    if (input.search(/hdr|dv/i) > 0) {
-      bitdepth = 10
+    if (input.search(/dv|dovi/i) > 0) {
+      hdrtype = `dv`
+    } else if (input.search(/hdr/i) > 0) {
+      hdrtype = `hdr`
+    }
 
-      if (input.search(/dv/i) > 0) {
-        hdrtype = `dv`
-      } else if (input.search(/hdr/i) > 0) {
-        hdrtype = `hdr`
-      }
+    if (hdrtype != `sdr`) {
+      bitdepth = 10
     }
 
     return {codec: codec, resolution: resolution, source: source, bitdepth: bitdepth, hdrtype: hdrtype}
